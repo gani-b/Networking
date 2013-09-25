@@ -2,7 +2,10 @@ import random
 from core import world
 from core import events
 
-default_latency = 0.5
+#default_latency = 0.5
+
+# Make default latency 1 - Kaifei Chen(kaifei@berkeley.edu)
+default_latency = 1
 
 class Cable (object):
   """ 

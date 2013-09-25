@@ -5,9 +5,15 @@ You should only use this to build your own test scenarios
 
 from core import topoOf
 
-def link (entity1, entity2):
+def link (entity1, entity2, latency=None):
   """ Connects the two nodes on a free port """
-  return topoOf(entity1).linkTo(entity2)
+  #return topoOf(entity1).linkTo(entity2)
+
+  # Add latency if there is - Kaifei Chen(kaifei@berkeley.edu)
+  if latency is None:
+      return topoOf(entity1).linkTo(entity2)
+  else:
+      return topoOf(entity1).linkTo(entity2, latency=latency)
 
 def unlink (entity1, entity2):
   """ Disconnects two connected nodes """

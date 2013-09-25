@@ -240,7 +240,7 @@ class TopoNode (object):
     self.growPorts = growPorts
     self.entity = None
 
-  def linkTo (self, topoEntity, cable = None, fillEmpty = True):
+  def linkTo (self, topoEntity, cable = None, fillEmpty = True, latency = None):
     """
     You can specify a cable to use in several ways:
      None           Both directions use BasicCable
@@ -267,7 +267,10 @@ class TopoNode (object):
 
     def fixCableEnd (c, le, lp, re, rp):
       if c is None: c = BasicCable
-      if isinstance(c, type) and issubclass(c, Cable):
+      # Add latency if the c is BasicCable - Kaifei Chen(kaifei@berkeley.edu)
+      if isinstance(c, type) and issubclass(c, BasicCable):
+        c = c(latency=latency)
+      elif isinstance(c, type) and issubclass(c, Cable):
         c = c()
       c.initialize(le, lp, re, rp)
       return c
@@ -288,12 +291,22 @@ class TopoNode (object):
     if cable[0] is not None:
       c = fixCableEnd(cable[0], self, localPort, topoEntity, remotePort)
       self.ports[localPort] = c
-      self.send(sim.basics.DiscoveryPacket(self.entity, True), localPort)
+
+      #self.send(sim.basics.DiscoveryPacket(self.entity, True), localPort)
+      
+      # Get latency if c is BasicCable - Kaifei Chen(kaifei@berkeley.edu)
+      l = c.latency if isinstance(c, BasicCable) else None  # latency
+      self.send(sim.basics.DiscoveryPacket(self.entity, latency=l), localPort)
 
     if cable[1] is not None:
       c = fixCableEnd(cable[1], topoEntity, remotePort, self, localPort)
       topoEntity.ports[remotePort] = c
-      topoEntity.send(sim.basics.DiscoveryPacket(topoEntity.entity, True), remotePort)
+
+      #topoEntity.send(sim.basics.DiscoveryPacket(topoEntity.entity, True), remotePort)
+
+      # Get latency if c is BasicCable - Kaifei Chen(kaifei@berkeley.edu)
+      l = c.latency if isinstance(c, BasicCable) else None  # latency
+      topoEntity.send(sim.basics.DiscoveryPacket(topoEntity.entity, latency=l), remotePort)
 
     world.doLater(.5, events.send_link_up, self.entity.name, localPort,
              topoEntity.entity.name, remotePort)
@@ -308,8 +321,13 @@ class TopoNode (object):
       other = port.dst
       otherPort = port.dstPort
       events.send_link_down(self.entity.name, index, other.entity.name, otherPort)
-      topoEntity.entity.handle_rx(sim.basics.DiscoveryPacket(self.entity, False), otherPort)
-      self.entity.handle_rx(sim.basics.DiscoveryPacket(topoEntity.entity, False), index)
+      
+      #topoEntity.entity.handle_rx(sim.basics.DiscoveryPacket(self.entity, False), otherPort)
+      #self.entity.handle_rx(sim.basics.DiscoveryPacket(topoEntity.entity, False), index)
+      
+      # Assign infinity to latency - Kaifei Chen(kaifei@berkeley.edu)
+      topoEntity.entity.handle_rx(sim.basics.DiscoveryPacket(self.entity, latency=float("inf")), otherPort)
+      self.entity.handle_rx(sim.basics.DiscoveryPacket(topoEntity.entity, latency=float("inf")), index)
 
       other.ports[otherPort] = None
       self.ports[index] = None

@@ -65,19 +65,37 @@ class Pong (Packet):
   def __repr__ (self):
     return "<Pong " + str(self.original) + ">"
 
+#class DiscoveryPacket (Packet):
+#    """
+#    A "link up/down" packet.
+#    """
+#    def __init__(self, src, is_link_up):
+#        Packet.__init__(self, src=src)
+#        self.is_link_up = is_link_up
+#
+#    def __repr__ (self):
+#        return "<%s from %s->%s, %s>" % (self.__class__.__name__,
+#                                 self.src.name if self.src else None,
+#                                 self.dst.name if self.dst else None,
+#                                 self.is_link_up)
+
+# Changed to enable link latency - Kaifei Chen(kaifei@berkeley.edu)      
 class DiscoveryPacket (Packet):
     """
-    A "link up/down" packet.
+    A "link latency change" packet.
+    latency should be float("inf") if the link is down.
     """
-    def __init__(self, src, is_link_up):
+    def __init__(self, src, latency):
         Packet.__init__(self, src=src)
-        self.is_link_up = is_link_up
+        self.latency = latency
+        self.is_link_up = (latency != None and latency != float("inf"))
 
     def __repr__ (self):
-        return "<%s from %s->%s, %s>" % (self.__class__.__name__,
+        return "<%s from %s->%s, %s, %s>" % (self.__class__.__name__,
                                  self.src.name if self.src else None,
                                  self.dst.name if self.dst else None,
-                                 self.is_link_up)
+                                 self.latency,
+                                 self,is_link_up)
 
 class RoutingUpdate (Packet): 
     """
