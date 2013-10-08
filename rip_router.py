@@ -32,8 +32,6 @@ class RIPRouter (Entity):
             if x in self.min_table:
                 minimum=self.min_table[x].values()[0]
                 key=self.min_table[x].keys()[0]
-                if minimum != self.table[x][key]:
-                    minimum=self.table[x][key]
             else:
                 minimum=100
                 key=None
@@ -91,6 +89,10 @@ class RIPRouter (Entity):
                     for x in dest:
                         self.table[x][packet.src]=1+packet.get_distance(x)
                         dest.remove(x)
+                for y in self.min_table.keys():
+                    for z in self.min_table[y].keys():
+                        self.min_table[y][z]=self.table[y][z]
+
                 self.min_distance()
                 if self.update:
                     for x in self.port_map.keys():
