@@ -27,7 +27,7 @@ class RIPRouter (Entity):
 
  #A function  to help calculate the minimum distance to each destination in the table
     def min_distance(self):
-        update=False
+
         for x in self.table.keys():
             if x in self.min_table:
                 minimum=self.min_table[x].values()[0]
@@ -37,17 +37,16 @@ class RIPRouter (Entity):
                 key=None
             for y in self.table[x].keys():
                 if self.table[x][y]<minimum:
-                    update=True
+                    self.update=True
                     minimum=self.table[x][y]
                     key=y
                     self.min_table[x]={y:minimum}
                 elif self.table[x][y]==minimum and minimum < 100:
                     if self.port_map[y] < self.port_map[self.min_table[x].keys()[0]]:
-                        update=True
+                        self.update=True
                         minimum=self.table[x][y]
                         key=y
                         self.min_table[x]={y:minimum}
-        return update
 
 
     def handle_rx (self, packet, port):
@@ -71,8 +70,8 @@ class RIPRouter (Entity):
                 if not isinstance(x,HostEntity):
                     packet=RoutingUpdate()
                     for y in self.min_table.keys():
-                            if self.min_table[y].keys()[0]!=x and self.min_table[y].values()[0]<100:
-                                packet.add_destination(y,self.min_table[y].values()[0])
+                      if self.min_table[y].keys()[0]!=x and self.min_table[y].values()[0]<100:
+                            packet.add_destination(y,self.min_table[y].values()[0])
                     self.send(packet,self.port_map[x])
                     RIPRouter.counter+=1
 
@@ -92,11 +91,10 @@ class RIPRouter (Entity):
                         dest.remove(x)
                 for y in self.min_table.keys():
                     for z in self.min_table[y].keys():
-                        if self.table[y][z]>self.min_table[y][z]:
-                            self.min_table[y][z]=self.table[y][z]
+                        self.min_table[y][z]=self.table[y][z]
 
-                
-                if self.min_distance():
+                self.min_distance()
+                if self.update:
                     for x in self.port_map.keys():
                         if not isinstance(x,HostEntity):
                             packet=RoutingUpdate()
